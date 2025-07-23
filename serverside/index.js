@@ -1,36 +1,79 @@
-const express = require("express");
-const http = require("http");
-const cors = require("cors");
-const { Server } = require("socket.io");
+const express=require("express");
+const app=express();
+const http=require("http");
+const server=http.createServer(app);//creates an http server for our app 
+//intilaise socket.io server through http server
 
-const app = express();
-const server = http.createServer(app);
+const {Server}=require("socket.io");
+const io=new Server(server);
+const userSocketMap={};
+const getAllConnectedClients=(roomid)=>{
+    return Array.from(io.sockets.adapter.rooms.get(roomid) || []).map(
+        socketId=>{
+            return {
+                socketId,
+                username:userSocketMap[socketId]
+            };
+        }
+    );
+    
+};
 
-// Configure CORS for Express
-app.use(cors({
-    origin: 'http://localhost:3001', // Replace with your frontend URL
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type']
-}));
+io.on('connection',(socket)=>{
+    console.log(`user ${socket.id}`);
+    socket.on('join',({roomid,username})=>{
+        userSocketMap[socket.id]=username
+        socket.join(roomid);
+        const clients=getAllConnectedClients(roomid);
+        clients.forEach(({socketId})=>{
+            io.to(socketId).emit('joined',{
+                clients,
+                username,
+                socketId:socket.id
+            });
+        })
 
-// Initialize Socket.IO server with CORS configuration
-const io = new Server(server, {
-    cors: {
-        origin: 'http://localhost:3001', // Replace with your frontend URL
-        methods: ['GET', 'POST']
-    }
-});
 
-io.on('connection', (socket) => {
-    console.log("User connected");
+})
 
-    // You can also handle disconnection and other events
-    socket.on('disconnect', () => {
-        console.log('User disconnected');
+socket.on('code-change',({roomid,code})=>{
+    socket.in(roomid).emit('code-change',{
+        code,
+        
     });
+
 });
 
-const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+socket.on("sync-code",({socketId,code})=>{
+    io.to(socketId).emit("code-change",{
+        code,
+        
+    });
+
 });
+
+
+socket.on('disconnecting',()=>{
+    
+    // console.log(`User disconnected: ${socket.id}`); 
+    // const username = userSocketMap[socket.id];
+    
+    const rooms=[...socket.rooms];
+    
+    rooms.forEach((roomid)=>{
+        socket.in(roomid).emit('disconnected',{
+            socketId:socket.id,
+            username:userSocketMap[socket.id]
+        });
+    });
+    delete userSocketMap[socket.id];
+    socket.leave();
+    
+});
+});
+
+const PORT =process.env.PORT||4000;
+server.listen(PORT,()=>{
+    console.log(`server is runnning${PORT}`);
+})
+

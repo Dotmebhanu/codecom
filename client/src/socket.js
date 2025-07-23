@@ -4,9 +4,9 @@ export const initSocket=async()=>{
     const option={
         "force new connection" : true,
         reconnectionAttempt:"infinity",
-        transports:['Websocket'],
+        transports:['websocket'],
     };
-    return io('http://localhost:4000', option);
+    return io(process.env.REACT_APP_BACKEND_URL, option);
 };
 
 //created  a socket for client side;
