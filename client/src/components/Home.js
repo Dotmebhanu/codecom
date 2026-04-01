@@ -1,77 +1,93 @@
-import React, { useState } from 'react';
-import { toast } from 'react-hot-toast';
+import React, { useState } from "react";
+import { toast } from "react-hot-toast";
 import { v4 as uuid } from "uuid";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
+const inputStyle = {
+  width: "100%", padding: "12px 14px", marginBottom: "14px",
+  backgroundColor: "#0f3460", border: "1px solid #2a2a5a",
+  borderRadius: "8px", color: "#e0e0e0", fontSize: "14px", outline: "none",
+};
+
+const btnPrimary = {
+  width: "100%", padding: "12px", backgroundColor: "#00b894",
+  border: "none", borderRadius: "8px", color: "white",
+  fontWeight: "700", fontSize: "15px", cursor: "pointer",
+};
 
 function Home() {
-    const [roomId, setRoomId] = useState("");
-    const [username, setUsername] = useState("");
-    const navigate = useNavigate();
+  const [roomId, setRoomId] = useState("");
+  const [username, setUsername] = useState("");
+  const navigate = useNavigate();
 
+  const generateRoomId = (e) => {
+    e.preventDefault();
+    setRoomId(uuid());
+    toast.success("Room ID created!");
+  };
 
-
-    const generateRoomId = (e) => {
-        e.preventDefault();
-        const id = uuid();
-        setRoomId(id);
-        toast.success("RoomId is created");
-
+  const joinRoom = () => {
+    if (!roomId || !username) {
+      toast.error("Both fields are required");
+      return;
     }
-    const joinRoom = (e) => {
-        if (!roomId || !username) {
-            toast.error("Both fields are required")
-        }
-        //navigating
-        else {
-            navigate(`/editor/${roomId}`, { state: { username } });
-            toast.success("Room is created")
-        }
-    }
+    navigate(`/editor/${roomId}`, { state: { username } });
+  };
 
-    return (
-        <div className='container-fluid'>
-            <div className="row justify-content-center align-items-center min-vh-100">
-                <div className='col-12 col-md-6'>
-                    <div className='card shadow-sm p-2 mb-5 bg-secondry-rounded'>
-                        <div className='card-body text-center bg-dark'>
-                            < img src='CollabCO.png' alt='CodeCom' height="200" />
-                            <h4 className='text-light mb-4'>Enter the Room ID</h4>
-                            <div className='form-group'>
-                                <input type='text' className='form-control mb-2' placeholder='Room Id'
-                                    value={roomId}
-                                    onChange={(e) => setRoomId(e.target.value)}
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") joinRoom();
+  };
 
-                                />
-
-                            </div>
-                            <div className='form-group'>
-                                <input value={username} onChange={(e) => setUsername(e.target.value)} type='text' className='form-control mb-2' placeholder='Username' />
-
-                            </div>
-                            <button
-                                onClick={joinRoom}
-                                className='btn btn-success btn-lg'
-                            >Join</button>
-
-
-
-                            <p className='mt-3 text-light'>Don't have a room Id ?  <span
-                                className='text-success'
-                                style={{ cursor: 'pointer' }}
-                                onClick={generateRoomId}
-                            >
-                                Create Room</span></p>
-
-                        </div>
-                    </div>
-
-                </div>
-
-
-            </div>
+  return (
+    <div style={{
+      minHeight: "100vh", backgroundColor: "#1a1a2e",
+      display: "flex", alignItems: "center", justifyContent: "center",
+    }}>
+      <div style={{
+        backgroundColor: "#16213e", borderRadius: "16px",
+        padding: "40px 36px", width: "100%", maxWidth: "400px",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+      }}>
+        <div style={{ textAlign: "center", marginBottom: "28px" }}>
+          <img src="CollabCO.png" alt="CodeCom" style={{ height: "80px", objectFit: "contain" }} />
+          <h4 style={{ color: "#e0e0e0", marginTop: "12px", fontWeight: 600 }}>
+            Join a Coding Room
+          </h4>
         </div>
-    )
+
+        <input
+          type="text"
+          placeholder="Room ID"
+          value={roomId}
+          onChange={(e) => setRoomId(e.target.value)}
+          onKeyDown={handleKeyDown}
+          style={inputStyle}
+        />
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          onKeyDown={handleKeyDown}
+          style={inputStyle}
+        />
+
+        <button onClick={joinRoom} style={btnPrimary}>
+          Join Room
+        </button>
+
+        <p style={{ textAlign: "center", color: "#888", marginTop: "20px", fontSize: "14px" }}>
+          Don't have a Room ID?{" "}
+          <span
+            onClick={generateRoomId}
+            style={{ color: "#00b894", cursor: "pointer", fontWeight: 600 }}
+          >
+            Create New Room
+          </span>
+        </p>
+      </div>
+    </div>
+  );
 }
 
-export default Home
+export default Home;
