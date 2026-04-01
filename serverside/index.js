@@ -54,6 +54,6 @@ io.on("connection", (socket) => {
     delete userSocketMap[socket.id];
   });
 });
-
+app.get("/ping", (req, res) => res.send("pong"));
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
